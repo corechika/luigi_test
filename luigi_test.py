@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 import luigi
+from sklearn import cluster
 
 class MakeTestData(luigi.Task):
     n = luigi.IntParameter()
@@ -37,6 +38,25 @@ class DataPrePro(luigi.Task):
             df.to_csv(fout, sep='\t', index=False)
     
 
+class TrainData(luigi.Task):
+    k = luigi.IntParameter()
+    n = luigi.IntParameter()
+
+    def requires(self):
+        return DataPrePro(n=self.n)
+    
+    def output(self):
+        return luigi.LocalTarget('./kmeans_result.txt')
+    
+    def run(self):
+        with self.input().open('r') as fin, self.output().open('w') as fout:
+            df = pd.read_csv(fin, sep='\t')
+            kmeans = cluster.KMeans(n_clusters=self.k)
+            kmeans.fit(df.drop(['sum'], axis=1).values)
+            pre = kmeans.predict(df.drop(['sum'], axis=1).values)
+            df['cluster'] = pre
+
+            df.to_csv(fout, sep='\t', index=False)
     
 if __name__ == '__main__':
     luigi.run()
