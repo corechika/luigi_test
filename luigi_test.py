@@ -59,4 +59,5 @@ class TrainData(luigi.Task):
             df.to_csv(fout, sep='\t', index=False)
     
 if __name__ == '__main__':
+    luigi.configuration.LuigiConfigParser.add_config_path('/home/leco/source/luigi_test/luigi_param.cfg')
     luigi.run()
